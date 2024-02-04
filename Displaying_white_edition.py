@@ -1,9 +1,9 @@
-from API_Access import CurrentlyPlaying, GetCover
+from API_Access import CurrentlyPlaying, SetupSpotifyAPI, GetCover
 
 import sys
-from PyQt5.QtWidgets import QApplication, QLabel, QGridLayout, QWidget, QSizePolicy, QGraphicsBlurEffect, \
+from PyQt5.QtWidgets import QApplication, QLabel, QGridLayout, QWidget, QGraphicsBlurEffect, \
     QGraphicsScene, QGraphicsPixmapItem, QGraphicsView
-from PyQt5.QtGui import QPixmap, QPalette, QBrush, QColor
+from PyQt5.QtGui import QPixmap, QColor
 from PyQt5.QtCore import Qt
 
 
@@ -44,6 +44,9 @@ class TheFrame_Spotify(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.sp = SetupSpotifyAPI()
+        self.cover= GetCover(self.sp)
+
         # Set up the window
         self.setWindowTitle("The Frame")
         self.setGeometry(100, 100, 1920, 1080)
@@ -68,14 +71,14 @@ class TheFrame_Spotify(QWidget):
         title_label_title = QLabel(self)
         title_label_title.setStyleSheet("color: #222222; font-size: 16px; font-weight: bold;")
         title_label_title.setAlignment(Qt.AlignCenter)
-        title_label_title.setText(CurrentlyPlaying()["title"])
+        title_label_title.setText(CurrentlyPlaying(self.sp)["title"])
         grid_layout.addWidget(title_label_title, 2, 1)
 
         # Set Artist
         title_label_artist = QLabel(self)
         title_label_artist.setStyleSheet("color: #3b3b3b; font-size: 14px;")
         title_label_artist.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
-        title_label_artist.setText(CurrentlyPlaying()["artist"])
+        title_label_artist.setText(CurrentlyPlaying(self.sp)["artist"])
         grid_layout.addWidget(title_label_artist, 3, 1)
 
         # Insert an image in Row 2, Column 2
@@ -85,15 +88,21 @@ class TheFrame_Spotify(QWidget):
         image_label.setAlignment(Qt.AlignCenter)
         grid_layout.addWidget(image_label, 1, 1, 1, 1)  # Span one row and one column
 
+
         self.setLayout(grid_layout)
+
+
 
     def set_background_image(self, image_path, blur_radius, overlay_alpha):
         overlay = BackgroundOverlay(self, image_path, blur_radius, overlay_alpha)
         overlay.setGeometry(0, 0, self.width(), self.height())
         overlay.show()
 
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
     window = TheFrame_Spotify()
     window.show()
     sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()
