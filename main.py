@@ -1,11 +1,16 @@
-from API_Access import CurrentlyPlaying
+import sys
 
-import json
+from PyQt5.QtWidgets import QApplication
+from Displaying_white_edition import TheFrame_Spotify
 
 
 
-# Press the green button in the gutter to run the script.
+
+
 if __name__ == '__main__':
-    print(type(CurrentlyPlaying()["cover_url"]))
-    print (json.dumps(CurrentlyPlaying(), indent=2))
+
+    app = QApplication(sys.argv)
+    window = TheFrame_Spotify()
+    window.show()
+    sys.exit(app.exec_())
 
