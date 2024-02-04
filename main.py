@@ -1,7 +1,7 @@
 import sys
 
 from PyQt5.QtWidgets import QApplication
-from Displaying_white_edition import TheFrame_Spotify
+from Spotify.Displaying_white_edition import TheFrame_Spotify
 
 
 
