@@ -22,7 +22,7 @@ def main():
     #root.attributes('-fullscreen', True)
 
     # Load and resize the image
-    image_path = "cover.jpg"  # Replace with the actual path to your image
+    image_path = "../cover.jpg"  # Replace with the actual path to your image
     original_image = Image.open(image_path)
     resized_image = original_image.resize((300, 300))  # Adjust the size as needed
     image = ImageTk.PhotoImage(original_image)

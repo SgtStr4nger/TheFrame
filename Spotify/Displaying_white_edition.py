@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication, QLabel, QGridLayout, QWidget, QGraphic
 from PyQt5.QtGui import QPixmap, QColor
 from PyQt5.QtCore import Qt, QTimer
 
-from PlaybackState import get_remaining_time
+from Spotify.PlaybackState import get_remaining_time
 
 
 class BackgroundOverlay(QGraphicsView):
@@ -81,12 +81,6 @@ class TheFrame_Spotify(QWidget):
 
         self.setLayout(grid_layout)
 
-    def set_update_timer(self):
-        # Set up a timer for periodic updates
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_information)
-        self.timer.start(get_remaining_time(self.sp))
-
     def Set_cover(self, grid_layout):
         self.image_label = QLabel(self)
         self.image_pixmap = QPixmap(GetCover(self.sp))  # Replace with your image file path
@@ -108,13 +102,29 @@ class TheFrame_Spotify(QWidget):
         self.title_label_title.setText(CurrentlyPlaying(self.sp)["title"])
         grid_layout.addWidget(self.title_label_title, 2, 1)
 
+    def set_update_timer(self):
+        # Set up a timer for periodic updates
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_information)
+
+        # Start the timer with a reasonable interval (e.g., 1000 milliseconds)
+        self.timer.start(1000)
+
     def update_information(self):
-        # Update the information here
-        self.title_label_title.setText(CurrentlyPlaying(self.sp)["title"])
-        self.title_label_artist.setText(CurrentlyPlaying(self.sp)["artist"])
-        self.image_pixmap = QPixmap(GetCover(self.sp))  # Replace with your image file path
-        self.image_label.setPixmap(self.image_pixmap)
-        self.set_update_timer()
+        # Update window
+        remaining_time = get_remaining_time(self.sp)
+
+        # Check if there's remaining time
+        if remaining_time is not None:
+            self.title_label_title.setText(CurrentlyPlaying(self.sp)["title"])
+            self.title_label_artist.setText(CurrentlyPlaying(self.sp)["artist"])
+            self.image_pixmap = QPixmap(GetCover(self.sp))
+            self.image_label.setPixmap(self.image_pixmap)
+
+            # Restart the timer with the new remaining time plus a buffer (e.g., 1000 milliseconds)
+            self.timer.start(remaining_time + 1000)
+        else:
+            print("No track is currently playing.")
 
     def set_background_image(self, image_path, blur_radius, overlay_alpha):
         overlay = BackgroundOverlay(self, image_path, blur_radius, overlay_alpha)
