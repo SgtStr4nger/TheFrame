@@ -19,7 +19,7 @@ class ProgressBar:
         # Darker progress color (#404040)
         self.canvas.create_rectangle(
             0, 0, progress_width, 10,
-            fill='#404040',  # Darker gray
+            fill='#444444',  # Darker gray
             outline=''
         )
 
