@@ -6,8 +6,12 @@ export const store = reactive({
   isPlaying: false
 })
 
-export function initWebSocket(callback) {
-  const ws = new WebSocket(`ws://${window.location.host}/ws/playback`)
+export function initWebSocket() {
+  const ws = new WebSocket(`ws://${window.location.hostname}:8000/ws/playback`);
+
+  ws.onerror = (error) => {
+    console.error('WebSocket Error:', error);
+  };
 
   ws.onmessage = (event) => {
     const data = JSON.parse(event.data)
