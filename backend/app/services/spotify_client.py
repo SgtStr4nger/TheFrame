@@ -3,9 +3,9 @@ import threading
 import time
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
-from backend.app.core.playback_state import PlaybackState
-from backend.app.services.websocket_manager import websocket_manager
-from backend.app.core.config import settings
+from app.core.playback_state import PlaybackState
+from app.services.websocket_manager import websocket_manager
+from app.core.config import settings
 from dotenv import load_dotenv
 
 class SpotifyClient:

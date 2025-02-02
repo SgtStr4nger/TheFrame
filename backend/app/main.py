@@ -1,8 +1,10 @@
 import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from backend.app.services.spotify_client import SpotifyClient
+from app.services.spotify_client import SpotifyClient
 
+from app.core.config import settings
+print("Spotify Client ID:", settings.SPOTIPY_CLIENT_ID)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
