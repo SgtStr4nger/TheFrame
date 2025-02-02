@@ -13,9 +13,14 @@ class PlaybackState:
         self.pause_time = None  # Timestamp when paused
 
     def update_state(self, track_info):
-        """Update state from Spotify API response"""
+        """Handle seek events and proper pause state"""
         if not track_info or 'item' not in track_info:
             return
+
+        # Handle seek events
+        if self.current_track_id == track_info['item']['id'] and \
+                abs(track_info['progress_ms'] - self.last_progress * 1000) > 1000:
+            self._handle_seek(track_info['progress_ms'])
 
         new_track_id = track_info['item']['id']
         new_playing_state = track_info['is_playing']
@@ -38,6 +43,15 @@ class PlaybackState:
         if self.playing and not self.start_time:
             self.start_time = time.time() - (track_info['progress_ms'] / 1000)
 
+    def get_current_progress(self):
+        if self.playing:
+            # Calculate elapsed time since playback started
+            elapsed = time.time() - self.start_time
+            # Never return progress exceeding track duration
+            self.last_progress = min(elapsed, self.duration)
+        return self.last_progress
+
+
     def _handle_play(self):
         """Resume playback after pause"""
         if self.pause_time:
@@ -50,18 +64,17 @@ class PlaybackState:
         self.pause_time = time.time()
         self.last_progress = self.get_current_progress()
 
+    def _handle_seek(self, new_progress_ms):
+        """Update timing for seek operations"""
+        self.last_progress = new_progress_ms / 1000
+        if self.playing:
+            self.start_time = time.time() - self.last_progress
+
+
     def _handle_new_track(self, track_info):
         """Reset state for new track"""
         self.current_track_id = track_info['item']['id']
-        self.start_time = time.time() - (track_info['progress_ms'] / 1000)
-        self.last_progress = 0
-        self.pause_time = None
-
-    def get_current_progress(self):
-        """Calculate current playback progress in seconds"""
-        if not self.playing:
-            return self.last_progress
-
-        elapsed = time.time() - self.start_time
-        self.last_progress = min(elapsed, self.duration)
-        return self.last_progress
+        # Set initial progress from API data
+        self.last_progress = track_info['progress_ms'] / 1000
+        # Calculate accurate start time considering current progress
+        self.start_time = time.time() - self.last_progress

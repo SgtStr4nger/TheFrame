@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class Application:
     def __init__(self):
         self.root = tk.Tk()
@@ -19,47 +20,39 @@ class Application:
             if data and data.get('item'):
                 current_track_id = data['item']['id']
 
-                # Only update if track changed or first load
+                # Only update UI elements on track change
                 if current_track_id != self.playback_state.current_track_id:
                     track_info = {
                         'title': data['item']['name'],
                         'artist': ', '.join([a['name'] for a in data['item']['artists']]),
                         'album_art': data['item']['album']['images'][0]['url'],
                         'progress_ms': data['progress_ms'],
-                        'duration_ms': data['item']['duration_ms'],
-                        'is_playing': data['is_playing']
+                        'duration_ms': data['item']['duration_ms']
                     }
                     self.gui.update_interface(track_info)
-                    # Start new animation for the track
-                    self.gui.progress_bar.start_animation(
-                        track_info['duration_ms'],
-                        track_info['progress_ms']
-                    )
 
-                # Always update progress
+                # Always update playback state
                 self.playback_state.update_state(data)
+
         except Exception as e:
-            print(f"Error in handle_update: {str(e)}")
+            print(f"Update error: {str(e)}")
             import traceback
             traceback.print_exc()
 
     def update_progress(self):
-        """Update progress bar at 60 FPS when playing"""
-        if self.playback_state.playing:
+        """Update only progress bar at 60 FPS"""
+        try:
             progress = self.playback_state.get_current_progress()
             if self.playback_state.duration > 0:
-                self.gui.update_progress(
-                    (progress / self.playback_state.duration) * 100
-                )
-            # Fixed: Moved after() call outside conditional
-            self.root.after(16, self.update_progress)
-        else:
+                percentage = (progress / self.playback_state.duration) * 100
+                self.gui.progress_bar.update_progress(percentage)
+        finally:
             self.root.after(16, self.update_progress)
 
     def run(self):
-        """Start the application main loop"""
         self.root.mainloop()
         self.spotify_client.stop()
+
 
 if __name__ == "__main__":
     app = Application()

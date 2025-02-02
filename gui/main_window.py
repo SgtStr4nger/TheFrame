@@ -96,15 +96,12 @@ class MainWindow:
             self._update_background(self.current_album_url)
 
     def update_interface(self, track_info):
-        """Update UI only when track changes"""
         if not hasattr(self, 'current_track_info') or self.current_track_info != track_info:
             self.current_track_info = track_info.copy()
             self._update_background(track_info['album_art'])
             self._update_album_art(track_info['album_art'])
             self._update_text(track_info)
-
-        # Separate progress updates
-        self._update_progress(track_info)
+            self.progress_bar.reset_animation()
 
     def _update_background(self, image_url):
         try:
@@ -127,10 +124,10 @@ class MainWindow:
             print(f"Background error: {str(e)}")
             self.main_canvas.configure(bg='#000000')
 
+
     def _update_album_art(self, image_url):
         try:
             if image_url != getattr(self, 'current_album_url', None):
-                print(f"Fetching new album art: {image_url}")
                 response = requests.get(image_url, timeout=5)
                 response.raise_for_status()
 
@@ -147,17 +144,16 @@ class MainWindow:
         except Exception as e:
             print(f"Album art error: {str(e)}")
 
+
     def _update_text(self, track_info):
         """Update track metadata display"""
         self.main_canvas.itemconfig(self.title_id, text=track_info['title'])
         self.main_canvas.itemconfig(self.artist_id, text=track_info['artist'])
         self.main_canvas.tag_raise('text')
 
-    def _update_progress(self, track_info):
-        """Update progress bar position"""
-        if track_info['duration_ms'] > 0:  # Prevent division by zero
-            progress = (track_info['progress_ms'] / track_info['duration_ms']) * 100
-            self.progress_bar.update_progress(progress)
+    def update_progress(self, percentage):
+        """Public progress update method"""
+        self.progress_bar.update_progress(percentage)
 
     def _handle_resize(self, event):
         """Handle window resize events"""
