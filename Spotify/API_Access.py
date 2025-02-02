@@ -5,8 +5,8 @@ import requests
 from spotipy.oauth2 import SpotifyOAuth
 
 def SetupSpotifyAPI():
-    ClientID = "eced503c8a0d459598f1740a7dcae605"
-    ClientSecret = "b727777a758747c0bd64daaae85e4dde"
+    ClientID = "-"
+    ClientSecret = "-"
     URL = "http://localhost:3000"
     scope = "user-read-currently-playing"
 
