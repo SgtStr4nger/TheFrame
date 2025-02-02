@@ -1,0 +1,44 @@
+:root {
+  --primary-color: #1DB954;
+  --background: #121212;
+  --text-primary: #FFFFFF;
+}
+
+body {
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: 'Roboto', sans-serif;
+}
+
+.player-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.progress-container {
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--primary-color);
+  border-radius: 2px;
+  transition: width 1s linear;
+}
+
+.track-title {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.track-artist {
+  color: rgba(255,255,255,0.7);
+  margin: 0.5rem 0;
+}
