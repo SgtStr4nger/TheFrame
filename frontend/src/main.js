@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import App from './components/Player.vue'
+import App from './App.vue'
 import { initWebSocket } from './services/websocket'
 
 const app = createApp(App)
