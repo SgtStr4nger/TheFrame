@@ -1,3 +1,4 @@
+import asyncio
 import os
 import threading
 import time
@@ -28,22 +29,22 @@ class SpotifyClient:
     def start_polling(self):
         if not self._running:
             self._running = True
-            self._polling_thread = threading.Thread(target=self._poll_loop)
-            self._polling_thread.start()
+            asyncio.create_task(self._poll_loop())
 
-    def _poll_loop(self):
+    async def _poll_loop(self):
         while self._running:
             try:
                 data = self.sp.current_playback()
                 if data and data.get('is_playing'):
                     self.playback_state.update_state(data)
-                    websocket_manager.broadcast({
+                    # Add await here
+                    await websocket_manager.broadcast({
                         "type": "playback_update",
                         "data": self.playback_state.get_state()
                     })
             except Exception as e:
                 print(f"Polling error: {str(e)}")
-            time.sleep(2)
+            await asyncio.sleep(2)
 
     def stop_polling(self):
         self._running = False

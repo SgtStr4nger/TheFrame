@@ -10,6 +10,15 @@ class PlaybackState:
             'is_playing': False
         }
 
+    def get_state(self):
+        """Return the complete state object"""
+        with self._lock:
+            return {
+                'track': self._state['track'],
+                'progress': self._state['progress'],
+                'is_playing': self._state['is_playing']
+            }
+
     def update_state(self, raw_data):
         """Thread-safe state update"""
         with self._lock:
