@@ -1,55 +1,42 @@
 <template>
-  <div v-if="isLoading" class="loading-state">
-    <div class="spinner"></div>
-  </div>
-  <div v-else class="player-container">
-    <Artwork :src="currentTrack.album_art" />
-    <div class="track-info">
-      <h2 class="track-title">{{ currentTrack.title }}</h2>
-      <p class="track-artist">{{ currentTrack.artist }}</p>
+  <div class="player-container">
+    <div v-if="currentTrack">
+      <h2>{{ currentTrack.title }}</h2>
+      <p>{{ currentTrack.artist }}</p>
+      <img :src="currentTrack.album_art" alt="Album Art">
     </div>
-    <Progress :duration="currentTrack.duration" :progress="progress" />
-    <div class="controls">
-      <button @click="togglePlay">
-        <span class="material-icons">{{ isPlaying ? 'pause' : 'play_arrow' }}</span>
-      </button>
+    <div v-else>
+      <p>Loading...</p>
+      <button @click="fetchPlaybackState">Refresh</button>
     </div>
   </div>
 </template>
 
 <script>
-import Artwork from './Artwork.vue'
-import Progress from './Progress.vue'
+import { ref, onMounted, onUnmounted } from 'vue';
+import { initWebSocket } from '../services/websocket';
 
 export default {
-  components: { Artwork, Progress },
-  data() {
+  setup() {
+    const currentTrack = ref(null);
+    let wsConnection = null;
+
+    onMounted(() => {
+      wsConnection = initWebSocket((data) => {
+        console.log('Updating track data:', data);
+        currentTrack.value = data.track;
+      });
+    });
+
+    onUnmounted(() => {
+      if (wsConnection) {
+        wsConnection.close();
+      }
+    });
+
     return {
-      currentTrack: {
-        title: 'Loading...',
-        artist: '',
-        album_art: '',
-        duration: 0
-      },
-      progress: 0,
-      isPlaying: false
-    }
-  },
-  mounted() {
-    this.$watch(
-      () => this.$store,
-      (newState) => {
-        this.currentTrack = newState.currentTrack || this.currentTrack
-        this.progress = newState.progress
-        this.isPlaying = newState.isPlaying
-      },
-      { deep: true, immediate: true }
-    )
-  },
-  methods: {
-    togglePlay() {
-      // Implement play/pause control
-    }
+      currentTrack
+    };
   }
 }
 </script>

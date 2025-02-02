@@ -6,26 +6,33 @@ export const store = reactive({
   isPlaying: false
 })
 
-export function initWebSocket() {
-  const ws = new WebSocket(`ws://${window.location.hostname}:8000/ws/playback`);
+export function initWebSocket(callback) {
+    const ws = new WebSocket('ws://localhost:8000/ws/playback');
 
-  ws.onerror = (error) => {
-    console.error('WebSocket Error:', error);
-  };
+    ws.onopen = () => {
+        console.log('WebSocket Connected');
+        // Send initial message to start receiving updates
+        ws.send('connect');
+    };
 
-  ws.onmessage = (event) => {
-    const data = JSON.parse(event.data)
-    if (data.type === 'playback_update') {
-      Object.assign(store, {
-        currentTrack: data.data.track,
-        progress: data.data.progress,
-        isPlaying: data.data.is_playing
-      })
-    }
-  }
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log('Received playback update:', data);
+        if (data.type === 'playback_update') {
+            callback(data.data);
+        }
+    };
 
-  ws.onopen = () => {
-    ws.send(JSON.stringify({ type: 'connection_init' }))
-    callback(store)
-  }
+    ws.onerror = (error) => {
+        console.error('WebSocket Error:', error);
+    };
+
+    // Keep connection alive
+    setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send('ping');
+        }
+    }, 300);
+
+    return ws;
 }

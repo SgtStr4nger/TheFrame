@@ -1,5 +1,6 @@
-from fastapi import APIRouter, WebSocket,WebSocketDisconnect
+import asyncio
 
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 router = APIRouter()
 
@@ -9,16 +10,14 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            await websocket.receive_text()
-    except WebSocketDisconnect:
-        print("Client disconnected")
-        while True:
-            # Add a receive call to detect disconnections
-            await websocket.receive_text()
-            current_state = spotify_client.playback_state.get_state()
+            # Send current playback state immediately after connection
+            current_state = websocket.app.state.spotify_client.playback_state.get_state()
             await websocket.send_json({
                 "type": "playback_update",
                 "data": current_state
             })
+            # Wait for client ping to keep connection alive
+            await websocket.receive_text()
+            await asyncio.sleep(1)
     except WebSocketDisconnect:
         print("Client disconnected")
