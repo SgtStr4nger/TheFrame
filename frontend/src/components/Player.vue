@@ -1,5 +1,8 @@
 <template>
-  <div class="player-container">
+  <div v-if="isLoading" class="loading-state">
+    <div class="spinner"></div>
+  </div>
+  <div v-else class="player-container">
     <Artwork :src="currentTrack.album_art" />
     <div class="track-info">
       <h2 class="track-title">{{ currentTrack.title }}</h2>
