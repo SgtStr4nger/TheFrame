@@ -30,6 +30,12 @@ class MainWindow:
         self.root.update_idletasks()
         self._position_elements()
 
+        # Add double buffer image
+        self.buffer_image = None
+        self.buffer_art = None
+
+        self.root.after(100, self._initial_positioning)
+
     def _create_ui_elements(self):
         """Initialize all UI components"""
         # Background image (centered)
@@ -83,52 +89,63 @@ class MainWindow:
         # Update progress bar width
         self.progress_bar.resize(width)
 
+    def _initial_positioning(self):
+        """Handle initial window sizing"""
+        self._position_elements()
+        if hasattr(self, 'current_album_url'):
+            self._update_background(self.current_album_url)
+
     def update_interface(self, track_info):
-        """Update all UI elements with new track info"""
-        self._update_background(track_info['album_art'])
-        self._update_album_art(track_info['album_art'])
-        self._update_text(track_info)
+        """Update UI only when track changes"""
+        if not hasattr(self, 'current_track_info') or self.current_track_info != track_info:
+            self.current_track_info = track_info.copy()
+            self._update_background(track_info['album_art'])
+            self._update_album_art(track_info['album_art'])
+            self._update_text(track_info)
+
+        # Separate progress updates
         self._update_progress(track_info)
 
     def _update_background(self, image_url):
-        """Update blurred background image"""
         try:
             response = requests.get(image_url, timeout=5)
-            response.raise_for_status()
-
             img = Image.open(BytesIO(response.content))
-            img = ImageOps.fit(img.convert('RGB'),
-                               (self.root.winfo_width(), self.root.winfo_height()))
+
+            # Get current window size with fallback
+            width = max(self.root.winfo_width(), 1)
+            height = max(self.root.winfo_height(), 1)
+
+            # Maintain aspect ratio while filling window
+            img = ImageOps.fit(img.convert('RGB'), (width, height), method=Image.Resampling.LANCZOS)
             blurred = img.filter(ImageFilter.GaussianBlur(radius=25))
 
-            # Maintain reference to prevent garbage collection
+            # Single reference for background
             self.background_image = ImageTk.PhotoImage(blurred)
-            self.main_canvas.itemconfig(self.background_image_id,
-                                        image=self.background_image)
+            self.main_canvas.itemconfig(self.background_image_id, image=self.background_image)
             self.main_canvas.tag_lower('background')
-
         except Exception as e:
             print(f"Background error: {str(e)}")
             self.main_canvas.configure(bg='#000000')
 
     def _update_album_art(self, image_url):
-        """Update album artwork display"""
         try:
-            response = requests.get(image_url, timeout=5)
-            response.raise_for_status()
+            if image_url != getattr(self, 'current_album_url', None):
+                print(f"Fetching new album art: {image_url}")
+                response = requests.get(image_url, timeout=5)
+                response.raise_for_status()
 
-            img = Image.open(BytesIO(response.content))
-            img = ImageOps.contain(img.convert("RGBA"), (600, 600))
+                img = Image.open(BytesIO(response.content))
+                img = ImageOps.contain(img.convert("RGBA"), (600, 600))
 
-            # Maintain reference to prevent garbage collection
-            self.album_art_image = ImageTk.PhotoImage(img)
-            self.main_canvas.itemconfig(self.album_art_id,
-                                        image=self.album_art_image)
-            self.main_canvas.tag_raise('album_art')
+                # Maintain reference and update only if changed
+                self.album_art_image = ImageTk.PhotoImage(img)
+                self.main_canvas.itemconfig(self.album_art_id, image=self.album_art_image)
+                self.current_album_url = image_url  # Track current URL
 
+                # Force redraw
+                self.main_canvas.tag_raise('album_art')
         except Exception as e:
             print(f"Album art error: {str(e)}")
-            self.main_canvas.itemconfig(self.title_id, text="Artwork unavailable")
 
     def _update_text(self, track_info):
         """Update track metadata display"""
@@ -146,8 +163,8 @@ class MainWindow:
         """Handle window resize events"""
         if event.widget == self.root:
             self._position_elements()
-            if hasattr(self, 'current_url'):
-                self._update_background(self.current_url)
+            if hasattr(self, 'current_track_info'):  # Changed from current_url to current_track_info
+                self._update_background(self.current_track_info['album_art'])
 
     def update_progress(self, percentage):
         """Update progress bar percentage (0-100)"""

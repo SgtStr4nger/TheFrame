@@ -15,19 +15,29 @@ class Application:
         self.root.after(16, self.update_progress)
 
     def handle_update(self, event_type, data):
-        """Handle updates from Spotify client"""
         try:
             if data and data.get('item'):
-                # Fixed: Added missing closing brace for track_info dictionary
-                track_info = {
-                    'title': data['item']['name'],
-                    'artist': ', '.join([a['name'] for a in data['item']['artists']]),
-                    'album_art': data['item']['album']['images'][0]['url'],
-                    'progress_ms': data['progress_ms'],
-                    'duration_ms': data['item']['duration_ms'],
-                    'is_playing': data['is_playing']
-                }
-                self.gui.update_interface(track_info)
+                current_track_id = data['item']['id']
+
+                # Only update if track changed or first load
+                if current_track_id != self.playback_state.current_track_id:
+                    track_info = {
+                        'title': data['item']['name'],
+                        'artist': ', '.join([a['name'] for a in data['item']['artists']]),
+                        'album_art': data['item']['album']['images'][0]['url'],
+                        'progress_ms': data['progress_ms'],
+                        'duration_ms': data['item']['duration_ms'],
+                        'is_playing': data['is_playing']
+                    }
+                    self.gui.update_interface(track_info)
+                    # Start new animation for the track
+                    self.gui.progress_bar.start_animation(
+                        track_info['duration_ms'],
+                        track_info['progress_ms']
+                    )
+
+                # Always update progress
+                self.playback_state.update_state(data)
         except Exception as e:
             print(f"Error in handle_update: {str(e)}")
             import traceback

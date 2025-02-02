@@ -25,7 +25,7 @@ def create_rounded_rectangle(self, x1, y1, x2, y2, radius=55, **kwargs):
         x1, y1 + radius,
         x1, y1 + radius,
         x1, y1
-    ]  # Fixed missing closing bracket
+    ]
     return self.create_polygon(points, **kwargs, smooth=True)
 
 
@@ -34,7 +34,8 @@ tk.Canvas.create_rounded_rectangle = create_rounded_rectangle
 
 class ProgressBar:
     def __init__(self, parent):
-        self.canvas = tk.Canvas(parent, bg='#000000', highlightthickness=0, height=25)
+        # Make canvas transparent
+        self.canvas = tk.Canvas(parent, highlightthickness=0, height=25)
         self.canvas.place(relx=0.5, rely=0.9, anchor=tk.CENTER, width=700)
         self.current_progress = 0
         self.animation_running = False
@@ -51,35 +52,44 @@ class ProgressBar:
 
         elapsed = time.time() - self.start_time
         progress = min(elapsed / self.duration, 1.0) * 100
+
+        # Update even if small change for smooth animation
         self._draw_progress(progress)
+        self.current_progress = progress
 
         if progress < 100:
-            self.canvas.after(16, self._animate)
+            self.canvas.after(16, self._animate)  # Restore 60 FPS
 
     def _draw_progress(self, percentage):
         self.canvas.delete('all')
         width = self.canvas.winfo_width()
         pos = (percentage / 100) * width
 
-        # Draw track background
+        # Draw track background (completely transparent)
         self.canvas.create_rounded_rectangle(
             0, 5, width, 15,
-            radius=10, fill='#404040', outline='#606060'
-        )  # Fixed missing parenthesis
+            radius=10,
+            fill='',  # Empty string for transparent fill
+            outline='#ffffff'  # White outline
+        )
 
         # Draw progress indicator
         self.canvas.create_oval(
             pos - 10, 0,
             pos + 10, 20,
-            fill='#ffffff', outline='#a0a0a0'
-        )  # Fixed missing parenthesis
+            fill='#cccccc',  # Light grey fill
+            outline='#ffffff'  # White outline
+        )
 
     def stop_animation(self):
         self.animation_running = False
 
     def update_progress(self, percentage):
+        """Update progress directly without animation"""
         self._draw_progress(percentage)
+        self.current_progress = percentage
 
-    def resize(self, width):
-        self.canvas.config(width=width * 0.8)
-        self._draw_progress((self.current_progress / 100) * width)
+    def resize(self, window_width):
+        """Handle window resizing"""
+        self.canvas.config(width=window_width * 0.8)
+        self._draw_progress(self.current_progress)
