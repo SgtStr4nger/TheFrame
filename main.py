@@ -16,18 +16,18 @@ class Application:
 
     def handle_update(self, event_type, data):
         try:
-            self.playback_state.update_state(data)
-            if event_type in ('track_change', 'playback_state'):
-                self.gui.update_interface({
+            if data and data.get('item'):
+                track_info = {
                     'title': data['item']['name'],
                     'artist': ', '.join([a['name'] for a in data['item']['artists']]),
-                    'album_art': data['item']['album']['images'][0]['url'],
-                    'progress_ms': data['progress_ms'],
-                    'duration_ms': data['item']['duration_ms'],
-                    'is_playing': data['is_playing']
-                })
+                    'album_art': data['item']['album']['images'][0]['url']
+                }
+                self.gui.update_interface(track_info)
+
         except Exception as e:
-            print(f"Update error: {str(e)}")
+            print(f"Error in handle_update: {str(e)}")
+            import traceback
+            traceback.print_exc()
 
     def update_progress(self):
         if self.playback_state.playing:
