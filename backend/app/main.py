@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -44,5 +44,8 @@ async def root():
     return {"status": "online", "service": "Spotify Player API"}
 
 @app.get("/health")
-def health_check():
-    return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
+async def health_check():
+    return {
+        "status": "ok",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }

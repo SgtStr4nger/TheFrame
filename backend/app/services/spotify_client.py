@@ -11,8 +11,8 @@ from dotenv import load_dotenv
 
 class SpotifyClient:
     def __init__(self):
-        self.playback_state = PlaybackState()
         self.sp = self._create_client()
+        self.playback_state = PlaybackState(spotify_client=self.sp)
         self._polling_thread = None
         self._running = False
         load_dotenv()
@@ -35,16 +35,17 @@ class SpotifyClient:
         while self._running:
             try:
                 data = self.sp.current_playback()
-                if data:  # Check if data exists before updating
+                if data:
                     self.playback_state.update_state(data)
-                    await websocket_manager.broadcast({
-                        "type": "playback_update",
-                        "data": self.playback_state.get_state()
-                    })
-                await asyncio.sleep(2)  # Add proper async delay
+                    current_state = self.playback_state.get_state()
+                    if current_state['track'] is not None:
+                        await websocket_manager.broadcast({
+                            "type": "playback_update",
+                            "data": current_state
+                        })
             except Exception as e:
                 print(f"Polling error: {str(e)}")
-                await asyncio.sleep(2)
+            await asyncio.sleep(2)
 
     def stop_polling(self):
         self._running = False
