@@ -35,14 +35,9 @@ class SpotifyClient:
         while self._running:
             try:
                 data = self.sp.current_playback()
+                print(f"Polling data received: {data}")  # Debug line
                 if data:
                     self.playback_state.update_state(data)
-                    current_state = self.playback_state.get_state()
-                    if current_state['track'] is not None:
-                        await websocket_manager.broadcast({
-                            "type": "playback_update",
-                            "data": current_state
-                        })
             except Exception as e:
                 print(f"Polling error: {str(e)}")
             await asyncio.sleep(2)

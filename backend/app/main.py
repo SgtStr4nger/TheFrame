@@ -8,22 +8,13 @@ from app.api.v1.endpoints import auth, playback, websocket
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan handler with modern FastAPI pattern"""
-    # Startup logic
     spotify_client = SpotifyClient()
     app.state.spotify_client = spotify_client
     spotify_client.start_polling()
-
-    yield  # Application runs here
-
-    # Shutdown logic
+    yield
     spotify_client.stop_polling()
 
-
-app = FastAPI(
-    title="Spotify Player Backend",
-    lifespan=lifespan
-)
+app = FastAPI(lifespan=lifespan)
 
 # Add CORS middleware
 app.add_middleware(
