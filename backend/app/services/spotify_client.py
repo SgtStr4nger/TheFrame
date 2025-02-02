@@ -35,16 +35,16 @@ class SpotifyClient:
         while self._running:
             try:
                 data = self.sp.current_playback()
-                if data and data.get('is_playing'):
+                if data:  # Check if data exists before updating
                     self.playback_state.update_state(data)
-                    # Add await here
                     await websocket_manager.broadcast({
                         "type": "playback_update",
                         "data": self.playback_state.get_state()
                     })
+                await asyncio.sleep(2)  # Add proper async delay
             except Exception as e:
                 print(f"Polling error: {str(e)}")
-            await asyncio.sleep(2)
+                await asyncio.sleep(2)
 
     def stop_polling(self):
         self._running = False

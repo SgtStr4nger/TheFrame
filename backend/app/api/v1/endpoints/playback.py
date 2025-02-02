@@ -1,14 +1,13 @@
 from fastapi import APIRouter, Depends
-from backend.app.services.spotify_client import SpotifyClient
-from backend.app.models.schemas import PlaybackInfoResponse
+from app.services.spotify_client import SpotifyClient
+from app.models.schemas import PlaybackInfoResponse
 
 router = APIRouter()
 
-@router.get("/playback", response_model=PlaybackInfoResponse)
+@router.get("/playback")
 async def get_playback_info(spotify: SpotifyClient = Depends()):
-    """Get current playback information"""
     return {
-        "track": spotify.playback_state.current_track_info(),
-        "progress": spotify.playback_state.get_current_progress(),
-        "is_playing": spotify.playback_state.is_playing
+        "track": spotify.playback_state.get_state()['track'],
+        "progress": spotify.playback_state.get_state()['progress'],
+        "is_playing": spotify.playback_state.get_state()['is_playing']
     }
